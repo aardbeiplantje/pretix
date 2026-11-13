@@ -227,6 +227,21 @@ def test_metrics_view(monkeypatch, client):
 
 
 @pytest.mark.django_db
+@override_settings(METRICS_ENABLED=True, METRICS_USER="metrics", METRICS_PASSPHRASE="")
+def test_metrics_view_refuses_empty_passphrase(client):
+    # With no passphrase configured, an empty password must not authenticate.
+    header = "Basic " + base64.b64encode(b"metrics:").decode()
+    assert client.get("/metrics", headers={"Authorization": header}).status_code == 401
+
+
+@pytest.mark.django_db
+@override_settings(METRICS_ENABLED=True, METRICS_USER="foo", METRICS_PASSPHRASE="bar")
+def test_metrics_view_rejects_malformed_authorization(client):
+    for header in ("Basic abc", "Basic " + base64.b64encode(b"nocolon").decode(), "Bearer x", "Basic"):
+        assert client.get("/metrics", headers={"Authorization": header}).status_code == 401, header
+
+
+@pytest.mark.django_db
 @override_settings(HAS_REDIS=True, METRICS_USER="foo", METRICS_PASSPHRASE="bar")
 def test_do_not_break_append_slash(monkeypatch, client):
     r = client.get('/control')

@@ -33,6 +33,7 @@
 # License for the specific language governing permissions and limitations under the License.
 
 import base64
+import binascii
 import hmac
 
 from django.conf import settings
@@ -55,15 +56,21 @@ def serve_metrics(request):
     if not settings.METRICS_ENABLED:
         return unauthed_response()
 
+    # Without a configured passphrase, an empty password would compare equal to it and let anyone in.
+    if not settings.METRICS_PASSPHRASE:
+        return unauthed_response()
+
     # check if the user is properly authorized:
     if "Authorization" not in request.headers:
         return unauthed_response()
 
-    method, credentials = request.headers["Authorization"].split(" ", 1)
-    if method.lower() != "basic":
+    try:
+        method, credentials = request.headers["Authorization"].split(" ", 1)
+        if method.lower() != "basic":
+            return unauthed_response()
+        user, passphrase = base64.b64decode(credentials.strip()).decode().split(":", 1)
+    except (ValueError, UnicodeDecodeError, binascii.Error):
         return unauthed_response()
-
-    user, passphrase = base64.b64decode(credentials.strip()).decode().split(":", 1)
 
     if not hmac.compare_digest(user, settings.METRICS_USER):
         return unauthed_response()
