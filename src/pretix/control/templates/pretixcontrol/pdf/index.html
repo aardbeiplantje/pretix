@@ -127,7 +127,8 @@
                     <div id="editor-canvas-area">
                         <canvas id="pdf-canvas"
                                 data-pdf-url="{{ pdf }}"
-                                data-worker-url="{% static "pdfjs/pdf.worker.js" %}">
+                                data-pdfjs-url="{% static "pdfjs/pdf.mjs" %}"
+                                data-worker-url="{% static "pdfjs/pdf.worker.mjs" %}">
 
                         </canvas>
                         <div id="fabric-container">
@@ -568,7 +569,6 @@
             </div>
         </div>
     </div>
-    <script type="text/javascript" src="{% static "pdfjs/pdf.js" %}"></script>
     <script type="text/javascript" src="{% static "fabric/fabric.min.js" %}"></script>
     <script type="text/javascript" src="{% static "pretixcontrol/js/ui/editor.js" %}"></script>
     <script type="text/javascript" src="{% static "schema/pdf-layout.validate.js" %}"></script>

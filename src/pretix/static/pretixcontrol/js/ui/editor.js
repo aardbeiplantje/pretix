@@ -532,12 +532,12 @@ var editor = {
 		// TODO: Loading indicators
 		let url = editor.pdf_url
 		// TODO: Handle cross-origin issues if static files are on a different origin
-		let pdfjsLib = window['pdfjs-dist/build/pdf']
-		pdfjsLib.GlobalWorkerOptions.workerSrc = editor.$pdfcv.attr('data-worker-url')
 
-		// Asynchronous download of PDF
-		let loadingTask = pdfjsLib.getDocument(url)
-		loadingTask.promise.then(function (pdf) {
+		// pdf.js is an ES module. Load it on demand, then fetch the PDF asynchronously.
+		import(editor.$pdfcv.attr('data-pdfjs-url')).then(function (pdfjsLib) {
+			pdfjsLib.GlobalWorkerOptions.workerSrc = editor.$pdfcv.attr('data-worker-url')
+			return pdfjsLib.getDocument(url).promise
+		}).then(function (pdf) {
 			editor.pdf = pdf
 			editor.pdf_page_count = pdf.numPages
 			if (editor.pdf_page_count > 10) {
@@ -545,7 +545,7 @@ var editor = {
 			}
 			editor._init_page_nav()
 			editor._load_page(1, dump)
-		}, function (reason) {
+		}).catch(function (reason) {
 			let msg = gettext('The PDF background file could not be loaded for the following reason:')
 			editor._error(msg + ' ' + reason)
 		})
