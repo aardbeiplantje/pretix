@@ -9,3 +9,8 @@ src/data/
 src/pretix/static.dist/
 src/dist/
 
+# Local configuration and generated secrets must never end up in an image layer.
+# (setup.cfg files are needed for the build, so match pretix.cfg specifically.)
+**/pretix.cfg
+**/.secret
+**/.env
