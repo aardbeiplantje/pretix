@@ -93,7 +93,7 @@ from ...testutils.middleware import debugflags_var
 from ._transactions import (
     _fail, _transactions_mark_order_clean, _transactions_mark_order_dirty,
 )
-from .base import LockModel, LoggedModel
+from .base import LockModel, LoggedModel, get_private_file_storage
 from .event import Event, SubEvent
 from .items import Item, ItemVariation, Question, QuestionOption, Quota
 
@@ -3606,7 +3606,8 @@ class CachedTicket(models.Model):
     provider = models.CharField(max_length=255)
     type = models.CharField(max_length=255)
     extension = models.CharField(max_length=255)
-    file = models.FileField(null=True, blank=True, upload_to=cachedticket_name, max_length=255)
+    file = models.FileField(null=True, blank=True, upload_to=cachedticket_name, max_length=255,
+                            storage=get_private_file_storage)
     created = models.DateTimeField(auto_now_add=True)
 
 
@@ -3615,7 +3616,8 @@ class CachedCombinedTicket(models.Model):
     provider = models.CharField(max_length=255)
     type = models.CharField(max_length=255)
     extension = models.CharField(max_length=255)
-    file = models.FileField(null=True, blank=True, upload_to=cachedcombinedticket_name, max_length=255)
+    file = models.FileField(null=True, blank=True, upload_to=cachedcombinedticket_name, max_length=255,
+                            storage=get_private_file_storage)
     created = models.DateTimeField(auto_now_add=True)
 
 

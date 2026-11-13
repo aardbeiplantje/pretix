@@ -20,9 +20,12 @@
 # <https://www.gnu.org/licenses/>.
 #
 import json
+import os
 import uuid
 
+from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
+from django.core.files.storage import FileSystemStorage
 from django.db import models
 from django.db.models.constants import LOOKUP_SEP
 from django.db.models.signals import post_delete
@@ -33,6 +36,24 @@ from django.utils.functional import cached_property
 
 from pretix.helpers.celery import get_task_priority
 from pretix.helpers.json import CustomJSONEncoder
+
+
+class PrivateFileStorage(FileSystemStorage):
+    """
+    Storage for generated files that may only be served by an authorising view.
+
+    The files live under DATA_DIR/private, outside MEDIA_ROOT, so no static route or
+    proxy rule for /media/ can reach them. Asking for a URL raises, so a template or
+    serializer cannot accidentally hand out a direct link.
+    """
+
+    def url(self, name):
+        raise ValueError("Private files are not served by URL; they must go through an authorised view.")
+
+
+def get_private_file_storage():
+    # Callable storage: Django instantiates this once per field, and migrations reference the function.
+    return PrivateFileStorage(location=os.path.join(settings.DATA_DIR, "private"))
 
 
 def cachedfile_name(instance, filename: str) -> str:
