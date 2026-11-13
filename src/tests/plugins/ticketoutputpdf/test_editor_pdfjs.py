@@ -25,7 +25,29 @@ def test_layout_editor_loads_pdfjs_as_module(client):
     assert r.status_code == 200
     html = r.content.decode()
 
-    # pdf.js 4.x is an ES module, loaded on demand by the editor; the 3.x UMD script must not be referenced.
+    # pdf.js is an ES module, loaded on demand by the editor; the old UMD script must not be referenced.
     assert 'data-pdfjs-url="/static/pdfjs/pdf.mjs"' in html
     assert 'data-worker-url="/static/pdfjs/pdf.worker.mjs"' in html
     assert 'pdfjs/pdf.js' not in html
+
+
+def test_pdfjs_ships_the_no_wasm_decoders():
+    # The editor disables WebAssembly (the control panel CSP does not allow it), so the JavaScript decoders must exist.
+    import os
+
+    import pretix
+
+    base = os.path.join(os.path.dirname(pretix.__file__), 'static', 'pdfjs', 'wasm')
+    assert os.path.exists(os.path.join(base, 'jbig2_nowasm_fallback.js'))
+    assert os.path.exists(os.path.join(base, 'openjpeg_nowasm_fallback.js'))
+
+
+def test_editor_does_not_enable_wasm():
+    import os
+
+    import pretix
+
+    path = os.path.join(os.path.dirname(pretix.__file__), 'static', 'pretixcontrol', 'js', 'ui', 'editor.js')
+    with open(path, encoding='utf-8') as f:
+        source = f.read()
+    assert 'useWasm: false' in source

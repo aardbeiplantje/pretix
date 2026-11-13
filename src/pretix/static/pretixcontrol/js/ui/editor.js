@@ -533,10 +533,14 @@ var editor = {
 		let url = editor.pdf_url
 		// TODO: Handle cross-origin issues if static files are on a different origin
 
-		// pdf.js is an ES module. Load it on demand, then fetch the PDF asynchronously.
-		import(editor.$pdfcv.attr('data-pdfjs-url')).then(function (pdfjsLib) {
+		// pdf.js is an ES module, loaded on demand. Its JBIG2 and JPEG 2000 decoders run as plain JavaScript
+		// fallbacks, and colour profiles are approximated: WebAssembly compilation is blocked by the script
+		// CSP of the control panel, which does not allow 'wasm-unsafe-eval'.
+		let pdfjsUrl = editor.$pdfcv.attr('data-pdfjs-url')
+		let wasmUrl = pdfjsUrl.substring(0, pdfjsUrl.lastIndexOf('/') + 1) + 'wasm/'
+		import(pdfjsUrl).then(function (pdfjsLib) {
 			pdfjsLib.GlobalWorkerOptions.workerSrc = editor.$pdfcv.attr('data-worker-url')
-			return pdfjsLib.getDocument(url).promise
+			return pdfjsLib.getDocument({ url: url, useWasm: false, wasmUrl: wasmUrl }).promise
 		}).then(function (pdf) {
 			editor.pdf = pdf
 			editor.pdf_page_count = pdf.numPages
