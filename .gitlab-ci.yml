@@ -3,8 +3,8 @@ tests:
         name: pretix/ci-image
     stage: test
     before_script:
-        - pip install -U pip uv
-        - uv pip install --system -U wheel setuptools
+        - pip install pip==26.3 uv==0.13.8
+        - uv pip install --system wheel==0.48.0 setuptools==84.2.1
     script:
         - uv pip install --system -e ".[dev]"
         - cd src
@@ -19,8 +19,8 @@ pypi:
         name: pretix/ci-image
     before_script:
         - cat $PYPIRC > ~/.pypirc
-        - pip install -U pip uv
-        - uv pip install --system -U wheel setuptools twine build pretix-plugin-build check-manifest
+        - pip install pip==26.3 uv==0.13.8
+        - uv pip install --system wheel==0.48.0 setuptools==84.2.1 twine==7.0.0 build==1.6.1 pretix-plugin-build==1.0.2 check-manifest==0.51
     script:
         - uv pip install --system -e ".[dev]"
         - python setup.py sdist
