@@ -125,6 +125,8 @@ Severity distribution: PyPI runtime 12 CRIT / 47 HIGH / 7 MED / 109 INFO; npm 4 
 - `708db7ac9` Pin the release and test tooling in GitLab CI
 - `a21ff3d98` Pin the pip tooling and the extra packages in the image
 - `1c475a17b` Stop nginx from serving ticket PDFs under /media/
+- `948b871fe` Add the supply-chain analysis of pretix's pinned dependencies
+- `e09474797` Run the image as an unprivileged user with root-owned code
 
 ## Reproducing the analysis
 
