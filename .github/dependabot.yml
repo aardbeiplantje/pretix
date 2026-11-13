@@ -12,7 +12,7 @@ updates:
     versioning-strategy: increase
     open-pull-requests-limit: 10
   - package-ecosystem: "npm"
-    directory: "/src/pretix/static/npm_dir"
+    directory: "/"
     schedule:
       interval: "monthly"
     open-pull-requests-limit: 5
