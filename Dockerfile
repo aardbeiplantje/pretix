@@ -55,13 +55,13 @@ COPY package-lock.json /pretix/package-lock.json
 COPY tsconfig.json /pretix/tsconfig.json
 COPY vite.config.ts /pretix/vite.config.ts
 
-RUN pip3 install -U \
-        pip \
-        setuptools && \
+RUN pip3 install \
+        pip==26.3 \
+        setuptools==84.2.1 && \
     cd /pretix && \
     PRETIX_DOCKER_BUILD=TRUE pip3 install \
         -e ".[memcached]" \
-        gunicorn django-extensions ipython && \
+        gunicorn==27.0.1 django-extensions==4.1 ipython==9.18.1 && \
     rm -rf ~/.cache/pip
 
 RUN chmod +x /usr/local/bin/pretix && \
