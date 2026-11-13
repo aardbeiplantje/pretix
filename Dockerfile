@@ -17,7 +17,6 @@ RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \
             nginx \
             python3-virtualenv \
             python3-dev \
-            sudo \
             supervisor \
             libmaxminddb0 \
             libmaxminddb-dev \
@@ -30,9 +29,9 @@ RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \
     /usr/sbin/update-locale LANG=C.UTF-8 && \
     mkdir /etc/pretix && \
     mkdir /data && \
-    useradd -ms /bin/bash -d /pretix -u 15371 pretixuser && \
+    useradd --no-create-home --home-dir /nonexistent --shell /usr/sbin/nologin \
+        --uid 15371 --user-group pretixuser && \
     chmod 0755 /pretix && \
-    echo 'pretixuser ALL=(ALL) NOPASSWD:SETENV: /usr/bin/supervisord' >> /etc/sudoers && \
     mkdir /static && \
     mkdir /etc/supervisord
 
@@ -64,16 +63,23 @@ RUN pip3 install \
         gunicorn==27.0.1 django-extensions==4.1 ipython==9.18.1 && \
     rm -rf ~/.cache/pip
 
+# Everything here runs as root, and /pretix ends up root-owned and read-only for the runtime user.
+# Build-time state (secret key, media and log directories created by settings) goes to a scratch
+# directory so the runtime data directory starts empty and owned by pretixuser.
 RUN chmod +x /usr/local/bin/pretix && \
     rm /etc/nginx/sites-enabled/default && \
     cd /pretix/src && \
-    rm -f pretix.cfg &&  \
-    mkdir -p data && \
-    chown -R pretixuser:pretixuser /pretix /data data &&  \
-    sudo -u pretixuser make production
+    rm -f pretix.cfg && \
+    DATA_DIR=/tmp/pretix-build-data make production && \
+    python3 -m compileall -q /pretix/src/pretix && \
+    rm -rf /tmp/pretix-build-data && \
+    chown pretixuser:pretixuser /data && \
+    chown -R pretixuser:pretixuser /var/cache/nginx /var/log/nginx && \
+    find / -xdev -perm /6000 -type f -exec chmod u-s,g-s {} + && \
+    test -z "$(find / -xdev -perm /6000 -type f 2>/dev/null)"
 
 USER pretixuser
 VOLUME ["/etc/pretix", "/data"]
-EXPOSE 80
+EXPOSE 8080
 ENTRYPOINT ["pretix"]
 CMD ["all"]
